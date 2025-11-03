@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Birthday Wish</title>
+    
+<script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for Cake and Animations */
+        :root {
+            --cake-color: #F4A7B6; /* Dusty Rose/Warm Peach for a cozy feel */
+            --cake-frosting: #FFFACD; /* Light cream/yellowish white frosting */
+            --candle-gold: #EAC117; /* Richer Gold candle */
+            --flame-yellow: #FFD700;
+            --flame-orange: #FF8C00;
+            /* New Balloon Colors */
+            --balloon-rose: #C77D8F;
+            --balloon-gold: #FFC300;
+            --balloon-cream: #faa300;
+            --balloon-dark-rose: #A34057; 
+            --balloon-light-gold: #f4f67f; 
+            /* NEW: Color variables for detailed cake */
+            --cake-stand-color: #BDB76B; 
+            --cake-stand-base: #8B8855; 
+            --garnish-color: #A34057; 
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fefcf3; /* Fallback for collage or if it fails to load */
+            
+            /* --- FIX: Force full viewport height and prevent scrolling --- */
+            height: 100vh; 
+            overflow: hidden;
+            /* ----------------------------------------------------------- */
+
+            /* --- UPDATED TO USE RELATIVE PATH FOR COLLAGE IMAGE --- */
+            background-image: url('collage.png');
+            
+            background-size: cover; 
+            background-position: center center; 
+            background-attachment: fixed; 
+            /* Overlay to dim and tint the background image for better readability */
+            position: relative; 
+            isolation: isolate; 
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(254, 252, 243, 0.5); /* Soft beige overlay */
+            z-index: -1; 
+        }
+        
+        /* NEW: Detailed Styles for the Cake Stand (Retained for structure) */
+        .cake-stand {
+            position: relative;
+            width: 380px; 
+            height: 20px;
+            background: var(--cake-stand-color);
+            border-radius: 50% / 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+            z-index: 15;
+            transform: scale(0.8) translateY(50px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Cake Stand Pedestal Base */
+        .cake-stand::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 30px;
+            background: linear-gradient(to top, var(--cake-stand-base), var(--cake-stand-color)); 
+            border-radius: 50% 50% 10px 10px / 50% 50% 5px 5px;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+            opacity: 1;
+        }
+
+
+        .cake-container {
+            perspective: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            flex-direction: column; /* Added for stand stacking */
+        }
+
+        .cake {
+            position: relative;
+            width: 280px;
+            height: 140px;
+            transform-style: preserve-3d;
+            transform: rotateX(20deg) rotateY(0deg);
+            z-index: 20; 
+            margin-top: -10px; /* Added for stand stacking */
+        }
+
+        /* Initial state for all dynamic elements */
+        .layer, .frosting, .candle-group {
+            opacity: 0;
+            transform: translateY(50px) scale(0.8);
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Cake Layers and Frosting - Sizing adjusted for 2 layers */
+        .layer {
+            position: absolute;
+            height: 70px;
+            background: var(--cake-color);
+            /* Enhanced 3D look with gradient and shadow */
+            background-image: linear-gradient(to right, rgba(0,0,0,0.15), transparent 50%, rgba(255,255,255,0.15));
+            border-radius: 50% / 10px;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2) inset; /* Deeper inner shadow */
+            transform-style: preserve-3d;
+            z-index: 10;
+        }
+        
+        /* Layer 1 - Bottom (Largest) */
+        .layer-1 { top: 70px; width: 280px; } 
+        .frosting-1 { top: 70px; width: 280px; } 
+
+        /* Layer 2 - Top (Smallest) */
+        .layer-2 { top: 0px; width: 220px; left: 30px; } 
+        .frosting-2 { top: 0px; width: 220px; left: 30px; } 
+
+        /* DETAIL: Decorative Ribbon on Bottom Layer */
+        .layer-1::before {
+            content: '';
+            position: absolute;
+            bottom: 8px; 
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: var(--garnish-color); 
+            border-radius: 50% / 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            z-index: 12; 
+        }
+
+        /* Enhanced Frosting - CLEANED for simple elegance */
+        .frosting {
+            position: absolute;
+            height: 15px;
+            background: var(--cake-frosting);
+            border-radius: 50% / 10px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15); 
+            z-index: 20;
+            transform: translateZ(0) translateY(-7.5px) scale(0.8);
+        }
+
+        /* Animation classes for build-up */
+        .visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Candles */
+        .candle-group {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            top: -45px;
+            z-index: 30;
+            transition: opacity 0.5s ease-in, transform 0.5s ease-in;
+        }
+
+        .candle {
+            width: 8px;
+            height: 40px;
+            background: var(--candle-gold);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .flame {
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: var(--flame-yellow);
+            border-radius: 50%;
+            top: -15px;
+            left: 0;
+            box-shadow: 0 0 10px var(--flame-yellow);
+            animation: flicker 0.1s infinite alternate;
+            transform-origin: bottom;
+            transition: opacity 0.3s ease-out;
+        }
+
+        @keyframes flicker {
+            0% { transform: scaleY(1); opacity: 1; box-shadow: 0 0 8px var(--flame-yellow); }
+            50% { transform: scaleY(0.95); opacity: 0.9; box-shadow: 0 0 12px var(--flame-yellow); }
+            100% { transform: scaleY(1.05); opacity: 1; box-shadow: 0 0 10px var(--flame-yellow); }
+        }
+
+        /* Blow out state */
+        .blow-out .flame {
+            opacity: 0 !important;
+            transform: scaleY(0) !important;
+            animation: none !important;
+        }
+
+        /* --- DYNAMIC BALLOON STYLES --- */
+        .balloon-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 5; /* Below card */
+        }
+
+        .balloon {
+            position: absolute;
+            bottom: -100px; /* Start off-screen */
+            width: 80px;
+            height: 100px;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0; 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform-origin: bottom center;
+        }
+
+        .balloon-string {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 50px;
+            background: rgba(10, 10, 10, 0.5);
+        }
+
+        .float-up {
+            animation: floatUp ease-in forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotateZ(0deg);
+                opacity: 0.8;
+            }
+            50% {
+                transform: translateY(-60vh) rotateZ(5deg);
+                opacity: 0.9;
+            }
+            100% {
+                transform: translateY(-120vh) rotateZ(-5deg); /* Float far above viewport with slight rotation */
+                opacity: 0;
+            }
+        }
+        
+        /* --- SCROLL MESSAGE STYLES FIX --- */
+        .scroll-message {
+            background-color: #fffff7; /* Slightly whiter than cream for contrast */
+            border: 1px solid #e0d9c9;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            width: 160px;
+            opacity: 0;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #444;
+            z-index: 25;
+            transition: opacity 1s ease-out, transform 1s ease-out, bottom 1s ease-out; 
+        }
+        
+        /* Message 1: Initial position is bottom: -200px (off-screen) */
+        .scroll-message-1 {
+            left: 5%;
+            bottom: -200px;
+        }
+        /* Message 2: Initial position is bottom: -200px (off-screen) */
+        .scroll-message-2 {
+            right: 5%;
+            bottom: -200px;
+        }
+        
+        /* Target state: Move up from bottom to a visible area */
+        .message-float-in-1 {
+            opacity: 1;
+            bottom: 25%; /* Settles 25% up from the bottom of the screen */
+            transform: rotate(-8deg); /* Apply rotation */
+        }
+        .message-float-in-2 {
+            opacity: 1;
+            bottom: 15%; /* Settles 15% up from the bottom of the screen */
+            transform: rotate(8deg); /* Apply rotation */
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start pt-10 pb-20 px-4">
+
+    
+
+<div id="balloon-container" class="balloon-container">
+    </div>
+
+    
+
+<div id="scroll-message-1" class="scroll-message scroll-message-1">
+        <p class="font-extrabold text-sm text-rose-600 mb-1">We might be absolute idiots sometimes, but that’s what makes this friendship unbeatable.</p>
+        
+    </div>
+
+    
+
+<div id="scroll-message-2" class="scroll-message scroll-message-2">
+        <p class="font-extrabold text-sm text-rose-600 mb-1">aur ek baat aur REPTA Khayegi!</p>
+    </div>
+
+    
+
+<div class="w-full max-w-3xl mx-auto py-6 px-8 rounded-xl shadow-2xl bg-pink-300 bg-opacity-70 backdrop-blur-sm relative z-10">
+        
+        
+
+<div id="initial-message" class="w-full text-center mb-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold text-rose-700 mb-2">
+                Happy Birtday Sanona!
+            </h1>
+            <p class="text-lg md:text-xl text-gray-700 font-semibold">
+                Hope all your wishes come true. You're the best!
+            </p>
+        </div>
+
+        
+
+<div class="cake-container">
+            <!-- NEW: Cake Stand -->
+            <div class="cake-stand" id="cake-plate"></div>
+            <div class="cake">
+                
+
+<div id="candles" class="candle-group">
+                    <div class="candle-wrapper">
+                        <div class="candle">
+                            <div class="flame"></div>
+                        </div>
+                    </div>
+                    <div class="candle-wrapper">
+                        <div class="candle">
+                            <div class="flame"></div>
+                        </div>
+                    </div>
+                    <div class="candle-wrapper">
+                        <div class="candle">
+                            <div class="flame"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer 2 (Top Layer of 2-Tier Cake) -->
+                <div id="frosting-2" class="frosting frosting-2"></div>
+                <div id="layer-2" class="layer layer-2"></div>
+
+                <!-- Layer 1 (Bottom Layer) -->
+                <div id="frosting-1" class="frosting frosting-1"></div>
+                <div id="layer-1" class="layer layer-1"></div>
+            </div>
+        </div>
+
+        
+
+<div class="w-full mt-12 text-center">
+            
+
+<p id="instruction" class="text-xl text-gray-500 font-medium transition-opacity duration-500 opacity-0">
+                <span class="inline-block bg-gray-200 text-gray-800 px-3 py-1 rounded-lg font-bold shadow-md">
+                    Allow Microphone Access
+                </span> to make a wish!
+            </p>
+            
+            <!-- Removed the #blow-message div here -->
+
+        </div>
+
+    </div> 
+
+<script type="text/javascript">
+        // Global state to prevent re-triggering the blow-out
+        let isBlownOut = false;
+        let balloonInterval = null; 
+        
+        // NEW: Audio variables for blow detection
+        let audioContext;
+        let analyser;
+        let audioStream;
+        const BLOW_THRESHOLD = 90; // Amplitude threshold to detect a "blow" (WAS 150)
+
+
+        /**
+         * Creates and launches a single balloon dynamically.
+         */
+        function launchNewBalloon() {
+            const container = document.getElementById('balloon-container');
+            const colors = [
+                'var(--balloon-rose)', 
+                'var(--balloon-gold)', 
+                'var(--balloon-cream)', 
+                'var(--balloon-dark-rose)', 
+                'var(--balloon-light-gold)'
+            ];
+            
+            // Create balloon element
+            const balloon = document.createElement('div');
+            balloon.classList.add('balloon', 'float-up');
+            
+            // Assign random styles
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            const randomLeft = Math.random() * 100; // 0% to 100%
+            const randomDuration = 10 + Math.random() * 10; // 10s to 20s
+            
+            balloon.style.backgroundColor = randomColor;
+            balloon.style.left = `${randomLeft}vw`; // Use vw for screen width
+            balloon.style.animationDuration = `${randomDuration}s`;
+            
+            // Set initial opacity to 1 immediately so they start visible and float
+            balloon.style.opacity = '1'; 
+
+            // Create string element
+            const string = document.createElement('div');
+            string.classList.add('balloon-string');
+            
+            balloon.appendChild(string);
+            container.appendChild(balloon);
+            
+            // Clean up the element after its animation duration
+            setTimeout(() => {
+                balloon.remove();
+            }, randomDuration * 1000);
+        }
+        
+        /**
+         * Handles the blow out event logic (called by audio detection or fallback).
+         */
+        function handleBlowOut() {
+            if (isBlownOut) return;
+            
+            isBlownOut = true;
+
+            // Stop listening to audio input
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+            }
+
+            const cake = document.querySelector('.cake');
+            const instruction = document.getElementById('instruction');
+            const scrollMessage1 = document.getElementById('scroll-message-1');
+            const scrollMessage2 = document.getElementById('scroll-message-2');
+
+            // 1. Visually "Blow Out" the Flames
+            cake.classList.add('blow-out');
+
+            // 2. Hide instruction
+            instruction.classList.add('opacity-0');
+
+            // 3. Show scroll messages, and START CONTINUOUS BALLOON LAUNCH
+            setTimeout(() => {
+                // Trigger scroll messages to float up and stop
+                scrollMessage1.classList.add('message-float-in-1');
+                scrollMessage2.classList.add('message-float-in-2');
+                
+                // 4. Start Continuous Balloon Launch
+                launchNewBalloon();
+                // Launch a new balloon every 500ms
+                balloonInterval = setInterval(launchNewBalloon, 500); 
+            }, 500);
+
+            // Ensure space bar listener is removed (in case it was the fallback)
+            document.removeEventListener('keydown', handleKeyDownFallback);
+        }
+
+        /**
+         * Recursively checks the microphone volume for a "blow" (loud peak).
+         */
+        function checkVolume() {
+            if (isBlownOut || !analyser) return; 
+
+            // Get the audio data
+            const buffer = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(buffer);
+
+            // Calculate average volume (RMS proxy)
+            let sum = 0;
+            for (let i = 0; i < buffer.length; i++) {
+                sum += buffer[i];
+            }
+            const average = sum / buffer.length;
+
+            // Check if the average volume exceeds the blow threshold
+            if (average > BLOW_THRESHOLD) {
+                console.log(`BLOW DETECTED: ${average}`);
+                handleBlowOut();
+                return; 
+            }
+
+            // Keep checking volume every frame
+            requestAnimationFrame(checkVolume);
+        }
+
+        /**
+         * Initializes microphone access and starts volume detection.
+         */
+        function startAudioDetection() {
+            const instruction = document.getElementById('instruction');
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        audioStream = stream;
+                        // Use AudioContext for broader compatibility
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        const microphone = audioContext.createMediaStreamSource(stream);
+
+                        // Configure analyser
+                        analyser.fftSize = 256; 
+                        
+                        // Connect nodes: mic -> analyser 
+                        microphone.connect(analyser);
+                        
+                        // Update UI and start the volume checking loop
+                        instruction.innerHTML = `
+                            <span class="inline-block bg-gray-300 text-gray-800 px-3 py-1 rounded-lg font-bold shadow-md">
+                                blow the candles and make a wish!
+                            </span>`;
+                        checkVolume();
+                    })
+                    .catch(err => {
+                        console.error('Error accessing microphone:', err);
+                        // Fallback UI instruction for microphone denial
+                        instruction.innerHTML = `
+                            <p class="text-red-500 font-bold">Microphone access denied or failed.</p>
+                            <p>Please <span class="inline-block bg-gray-200 text-gray-800 px-3 py-1 rounded-lg font-bold shadow-md">Press the SPACE BAR</span> instead!</p>`;
+                        
+                        // Set up space bar fallback
+                        document.addEventListener('keydown', handleKeyDownFallback);
+                    });
+            } else {
+                // Browser doesn't support mic access
+                console.error('getUserMedia not supported in this browser.');
+                instruction.innerHTML = `
+                        <p class="text-red-500 font-bold">Mic not supported.</p>
+                        <p>Please <span class="inline-block bg-gray-200 text-gray-800 px-3 py-1 rounded-lg font-bold shadow-md">Press the SPACE BAR</span> instead!</p>`;
+                
+                // Set up space bar fallback
+                document.addEventListener('keydown', handleKeyDownFallback);
+            }
+        }
+
+        /**
+         * Fallback function for space bar (if mic fails/denied)
+         */
+        function handleKeyDownFallback(event) {
+            if (event.code === 'Space' && !isBlownOut) {
+                event.preventDefault();
+                handleBlowOut();
+            }
+        }
+
+
+        /**
+         * Initializes the cake build animation sequence.
+         */
+        function initCakeAnimation() {
+            const layers = [
+                document.getElementById('layer-1'),
+                document.getElementById('frosting-1'),
+                document.getElementById('layer-2'),
+                document.getElementById('frosting-2'),
+            ];
+            const candles = document.getElementById('candles');
+            let delay = 0;
+
+            // 1. Build the Cake Layers and Stand
+            layers.forEach((element, index) => {
+                delay += 250; 
+                setTimeout(() => {
+                    element.classList.add('visible');
+                }, delay);
+            });
+
+            // 2. Light the Candles (Show candle group)
+            delay += 500;
+            setTimeout(() => {
+                candles.classList.add('visible');
+            }, delay);
+
+            // 3. Start listening for the blow after the cake is ready
+            delay += 500;
+            setTimeout(() => {
+                document.getElementById('instruction').classList.remove('opacity-0');
+                startAudioDetection();
+            }, delay);
+        }
+
+        // Start the process when the page is fully loaded
+        window.onload = initCakeAnimation;
+    </script>
+</body>
+</html>
